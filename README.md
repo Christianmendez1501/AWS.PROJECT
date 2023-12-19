@@ -1,7 +1,16 @@
 <!DOCTYPE html>
 <html>
 
-# Proyecto Cristian y Christian
+# Proyecto Cristian y Christian 🚀
+
+<div align="center">
+  <img src="https://simpleicons.org/icons/amazonaws.svg" alt="AWS" width="100" />
+  <img src="https://simpleicons.org/icons/amazonec2.svg" alt="EC2" width="100" />
+  <img src="https://simpleicons.org/icons/amazondynamodb.svg" alt="DynamoDB" width="100" />
+  <img src="https://simpleicons.org/icons/amazons3.svg" alt="S3" width="100" />
+  <img src="https://simpleicons.org/icons/awslambda.svg" alt="Lambda" width="100" />
+</div>
+
 ## Objetivo:
  Crear una base de datos en DynamoDB que reciba "items" mediante una función Lambda, que a su vez la función Lambda coge los "items" desde un S3 bucket, introduciendo los datos a través de un formulario via web hospedado en una instancia de EC2, siendo el EC2 el encargado de mandar los documentos JSON al S3
 
@@ -15,16 +24,16 @@
   <li><a href="#funcion">Lambda</a></li>
 </ol>
 
-<a id="roles"></a>
+<a id="roles 🤖"></a>
 
-# Roles
+# Roles 🤖
 
 Para trabajar con los siguientes servicios vamos a crear los roles en IAM y se los asignamos a los siguientes servicios para poder trabajar con ellos
 
 #### Lambda
 - Permisos de FullAccess sobre el servicio de DynamoDB y FullAccess sobre S3
 
-#### EC2
+#### EC2 🖥️
 
 - Permisos de FullAccess sobre S3 para mandar los documentos JSON al S3
 
@@ -53,6 +62,8 @@ Una vez creada la instancia la actualizamos ("apt update" y "apt upgrade") y emp
 
 Dentro de flask introducimos el documento encargado de recoger la información con la que vamos a trabajar posteriormente:
 
+<details>
+  <summary><b>Código Flask</b></summary>
 
 ```python
 import json
@@ -161,6 +172,8 @@ def submit_form(n_clicks, nombre, email):
 if __name__ == '__main__':
     app.run_server(host='0.0.0.0', port=80, debug=True)
 ```
+</details>
+
 Su vista previa seria la siguiente:
 
 ### Menú
@@ -181,7 +194,7 @@ En la creación del bucket le definimos le nombre, le asignamos la región corre
 
 <a id="dynamodb"></a>
 
-# Creación de la base de datos en DynamoDB
+# Creación de la base de datos en DynamoDB 💾
 
 Accedemos al apartado de "Tables" y empezamos la creación de la tabla
 
@@ -199,7 +212,7 @@ Una vez creada la tabla y estando localizados dentro de la tabla accedemos a "Ex
 
 <a id="funcion"></a>
 
-# Creacion de la función Lambda
+# Creacion de la función Lambda 🚀
 
 Accedemos a "Create funcion" y empezamos
 
@@ -214,6 +227,9 @@ En "Event types" selecionamos "All object create events" y en el apartado de "Su
 Definiendo este "trigger" con esta configuración lo que conseguimos es que cada vez que entre un nuevo archivo.json al bucket se va a iniciar la función lambda
 
 Después de definir el "trigger" accedemos al apartado de "code" dentro de la función y configuramos el codigo que queremos que ejecute
+
+<details>
+  <summary><b>Código Lambda</b></summary>
 
 ```python
 
@@ -250,6 +266,7 @@ def lambda_handler(event, context):
     return 'Hello from Lambda'
 
 ```
+</details>
 
 En el servicio de CloudWatch se van a ir generando "logs" relacionados con la función lambda cada vez que se ejecute, de esta manera podemos hacer pruebas con la función lamda y hacer control de errores
 
