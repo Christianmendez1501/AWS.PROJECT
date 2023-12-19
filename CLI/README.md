@@ -8,8 +8,6 @@
   <img src="https://simpleicons.org/icons/awslambda.svg" alt="Lambda" width="100" />
 </div>
 
-
-
 ```markdown
 ## Miembros:
 - Cristian Olaya
