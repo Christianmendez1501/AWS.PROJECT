@@ -1,11 +1,23 @@
-# Presentacion de Amazon web services
-Miembros:
+# Despliegue de formulario en la plataforma de Amazon Web Services (aws)
+
+<div align="center">
+  <img src="https://simpleicons.org/icons/amazonaws.svg" alt="AWS" width="100" />
+  <img src="https://simpleicons.org/icons/amazonec2.svg" alt="EC2" width="100" />
+  <img src="https://simpleicons.org/icons/amazondynamodb.svg" alt="DynamoDB" width="100" />
+  <img src="https://simpleicons.org/icons/amazons3.svg" alt="S3" width="100" />
+  <img src="https://simpleicons.org/icons/awslambda.svg" alt="Lambda" width="100" />
+</div>
+
+
+
+```markdown
+## Miembros:
 - Cristian Olaya
 - Christian Mendez
-
+``````
 ## Resumen:
 
-### Configurar AWS en la maquina
+### Configurar AWS en la máquina
 
 ```bash
 aws configure
@@ -17,8 +29,11 @@ Esto te pedirá que ingreses la información de tus credenciales de AWS:
 - AWS Secret Access Key: Tu clave secreta de acceso de AWS.
 - Default region name: La región de AWS que deseas utilizar (por ejemplo, us-east-1).
 
- ## Creacion EC2
+## Creación EC2
+<details>
+<summary>Código</summary>
 
+```bash
 aws ec2 run-instances \
     --image-id AMI_ID \
     --instance-type INSTANCE_TYPE \
@@ -26,29 +41,36 @@ aws ec2 run-instances \
     --subnet-id SUBNET_ID \
     --security-group-ids SECURITY_GROUP_ID \
     --region YOUR_REGION
+```
+</details>
 
-
-
-### Creacion S3
+### Creación S3
+<details>
+<summary>Código</summary>
 
 ```bash
-aws s3api create-bucket --bucket NOMBRE_DEL_CUBO --region REGION
-``````
+aws s3 api create-bucket --bucket NOMBRE_DEL_CUBO --region REGION
+```
+</details>
 
-- podrias tener problemas con tu region, por cual es recomendable usar una bvariable de entorno
+Podrías tener problemas con tu región, por lo cual es recomendable usar una variable de entorno:
 
 ```bash
 export NOMBRE_DE_VARIABLE=valor
 ```
 
-- Para establecerla de manera permanente, generalmente se agrega esa línea al archivo de perfil del usuario, como ~/.bashrc o ~/.bash_profile. Puedes editar estos archivos con un editor de texto como nano o vi. Por ejemplo:
+Para establecerla de manera permanente, generalmente se agrega esa línea al archivo de perfil del usuario, como ~/.bashrc o ~/.bash_profile. Puedes editar estos archivos con un editor de texto como nano o vi. 
+
+Por ejemplo:
 
 ```bash
 echo 'export NOMBRE_DE_VARIABLE=valor' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### Creamos el codigo de la app que vamos a ejecutar
+### Creamos el código de la app que vamos a ejecutar
+<details>
+<summary>Código</summary>
 
 ```python
 import json
@@ -148,11 +170,13 @@ def submit_form(n_clicks, nombre, email):
 if __name__ == '__main__':
     app.run_server(host='0.0.0.0', port=80, debug=True)
 ```
-
+</details>
 
 ## Creamos una base de datos en DynamoDB y una función Lambda
 
 ### Paso 1: Crear una tabla en DynamoDB
+<details>
+<summary>Código</summary>
 
 ```bash
 aws dynamodb create-table \
@@ -163,14 +187,22 @@ aws dynamodb create-table \
     --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 \
     --region tu-region
 ```
+</details>
+
 ### Subir el código a un Bucket de S3
-- Antes de ejecutar el comando para crear la función Lambda, necesitaremos tener el código de la función en un archivo ZIP y almacenarlo en un bucket de S3. 
+<details>
+<summary>Código</summary>
+
+Antes de ejecutar el comando para crear la función Lambda, necesitaremos tener el código de la función en un archivo ZIP y almacenarlo en un bucket de S3.
 
 ```bash
 aws s3 cp tu-archivo-.zip s3://tu-cubo/
 ```
+</details>
 
 ### Paso 2: Crear una función Lambda
+<details>
+<summary>Código</summary>
 
 ```bash
 aws lambda create-function \
@@ -181,10 +213,12 @@ aws lambda create-function \
     --code S3Bucket=tu-bucket-con-el-codigo,Key=tu-archivo-zip-con-el-codigo.zip \
     --environment Variables={DYNAMODB_TABLE=Usuarios} \
     --region tu-region
-
 ```
+</details>
 
 ### Paso 3: Crear una función Lambda que se active al crear un objeto en S3
+<details>
+<summary>Código</summary>
 
 ```bash
 aws lambda create-function \
@@ -196,44 +230,18 @@ aws lambda create-function \
     --environment Variables={TARGET_LAMBDA_NAME=GuardarUsuarioEnDynamoDB} \
     --region tu-region
 ```
-- Creación de un rol con los permisos necesarios para la ejecución de la función Lambda. Dos opciones:
-
-1. creación de un archivo JSON llamado trust-policy.json con el siguiente contenido para definir la política de confianza del rol
-
-```bash
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-```
-
-2. Ejecutar el siguiente comando para crear el nuevo rol:
-
-```bash
-$ aws iam create-role --role-name my-role --assume-role-policy-document file://trust-policy.json --output text --query 'Role.Arn'
-```
-> El comando --output text --query 'Role.Arn' se utiliza para obtener solo el ARN (Amazon Resource Name) del rol recién creado como resultado del comando
-
-3. ejecutar los siguientes comandos para añadir las políticas necesarias al rol:
-
-```bash
-$ aws iam attach-role-policy --role-name my-role --policy-arn arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
-```
+</details>
 
 ### Paso 4: Configurar el evento de S3 para activar la función Lambda
+<details>
+<summary>Código</summary>
 
 ```bash
 aws s3api put-bucket-notification-configuration \
     --bucket tu-bucket-s3 \
     --notification-configuration '{"LambdaFunctionConfigurations":[{"LambdaFunctionArn":"arn:aws:lambda:tu-region:tu-id-de-cuenta:function:TriggerLambda","Events":["s3:ObjectCreated:*"]}]}'
 ```
+</details>
+```
 
+¡Espero que esto haga que tu README sea más atractivo y fácil de seguir! ¡Si tienes más ajustes o preguntas, házmelo saber!
